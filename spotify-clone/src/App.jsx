@@ -20,5 +20,3 @@ const App = () => {
 };
 
 export default App;
-
-//youtube 1:13:14
