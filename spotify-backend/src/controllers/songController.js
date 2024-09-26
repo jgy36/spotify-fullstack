@@ -66,14 +66,29 @@ const listSong = async (req, res) => {
 };
 
 const removeSong = async (req, res) => {
+  const { id } = req.body; // Extract the song ID from the request body
+
   try {
-    res.json({ success: true, message: "Song deleted successfully!" });
+    // Find and delete the song by ID
+    const deletedSong = await songModel.findByIdAndDelete(id);
+
+    if (!deletedSong) {
+      return res.status(404).json({
+        success: false,
+        message: "Song not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Song deleted successfully!",
+    });
   } catch (error) {
-    res.json({
+    console.error("Error deleting song:", error);
+    res.status(500).json({
       success: false,
-      message: "there was an error deleting the song??",
+      message: "There was an error deleting the song",
     });
   }
 };
-
 export { addSong, listSong, removeSong };
