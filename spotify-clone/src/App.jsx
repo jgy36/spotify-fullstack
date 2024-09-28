@@ -1,21 +1,36 @@
-import React, { useContext } from "react";
+import React from "react";
 import Sidebar from "./components/Sidebar";
 import Player from "./components/player";
 import Display from "./components/Display";
-import { PlayerContext } from "./context/PlayerContext";
+import PlayerContextProvider, { PlayerContext } from "./context/PlayerContext";
 
 const App = () => {
-  const { audioRef, track } = useContext(PlayerContext);
-
   return (
-    <div className="h-screen bg-black">
-      <div className="h-[90%] flex">
-        <Sidebar />
-        <Display />
+    <PlayerContextProvider>
+      <div className="h-screen bg-black">
+        <PlayerContext.Consumer>
+          {({ audioRef, track, songsData }) => (
+            <>
+              {songsData.length !== 0 ? (
+                <>
+                  <div className="h-[90%] flex">
+                    <Sidebar />
+                    <Display />
+                  </div>
+                  <Player />
+                </>
+              ) : null}
+
+              <audio
+                ref={audioRef}
+                preload="auto"
+                src={track ? track.file : ""}
+              ></audio>
+            </>
+          )}
+        </PlayerContext.Consumer>
       </div>
-      <Player />
-      <audio ref={audioRef} preload="auto" src={track.file}></audio>
-    </div>
+    </PlayerContextProvider>
   );
 };
 

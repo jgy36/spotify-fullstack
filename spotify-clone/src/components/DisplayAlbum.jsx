@@ -1,15 +1,30 @@
-import React, {useContext} from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import { useParams } from "react-router-dom";
-import { albumsData, assets, songsData } from "../assets/assets";
+import { assets } from "../assets/assets";
 import { PlayerContext } from "../context/PlayerContext";
 
 const DisplayAlbum = () => {
   const { id } = useParams();
-  const albumData = albumsData[id];
-  const { playWithId } = useContext(PlayerContext);
+  const { playWithId, albumsData, songsData } = useContext(PlayerContext);
+  const [albumData, setAlbumData] = useState(null);
 
-  return (
+  useEffect(() => {
+    if (albumsData.length > 0) {
+      const selectedAlbum = albumsData.find((item) => item._id === id);
+      if (selectedAlbum) {
+        setAlbumData(selectedAlbum);
+        console.log("Selected Album:", selectedAlbum); // Log selected album when found
+      }
+    }
+  }, [albumsData, id]);
+
+  // Move console logs here
+  console.log("Albums Data:", albumsData);
+  console.log("Songs Data:", songsData);
+  console.log("Album Data:", albumData); // Log albumData here
+
+  return albumData ? (
     <>
       <Navbar />
       <div className="mt-10 flex gap-8 flex-col md:flex-row md:items-end">
@@ -40,23 +55,43 @@ const DisplayAlbum = () => {
         <img className="m-auto w-4" src={assets.clock_icon} alt="" />
       </div>
       <hr />
-      {songsData.map((item, index) => (
-        <div onClick={()=>playWithId(item.id)}
-          key={index}
-          className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
-        >
-          <p className="text-white">
-            <b className="mr-4 text-[#a7a7a7]">{index + 1}</b>
-            <img className="inline w-10 mr-5" src={item.image} alt="" />
-            {item.name}
-          </p>
-          <p className="text-[15px]">{albumData.name}</p>
-          <p className="text-[15px] hidden sm:block">5 days ago</p>
-          <p className="text-[15px] text-center">{item.duration}</p>
-        </div>
-      ))}
+
+      {/* Debugging logs */}
+      {console.log("Songs Data Before Filtering:", songsData)}
+      {console.log("Current Album Data:", albumData)}
+
+      {/* Filtered Songs Logic */}
+      {(() => {
+        if (!albumData) return null; // Safeguard against null albumData
+
+        const filteredSongs = songsData.filter(
+          (item) => item.album === albumData.name
+        ); // Filter songs by album id
+        console.log("Filtered Songs:", filteredSongs);
+
+        return filteredSongs.length > 0 ? (
+          filteredSongs.map((item, index) => (
+            <div
+              onClick={() => playWithId(item._id)}
+              key={index}
+              className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
+            >
+              <p className="text-white">
+                <b className="mr-4 text-[#a7a7a7]">{index + 1}</b>
+                <img className="inline w-10 mr-5" src={item.image} alt="" />
+                {item.name}
+              </p>
+              <p className="text-[15px]">{albumData.name}</p>
+              <p className="text-[15px] hidden sm:block">5 days ago</p>
+              <p className="text-[15px] text-center">{item.duration}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-white">No songs available for this album.</p>
+        );
+      })()}
     </>
-  );
+  ) : null;
 };
 
 export default DisplayAlbum;

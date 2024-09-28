@@ -58,10 +58,12 @@ const ListSong = () => {
               <p>{item.name}</p>
               <p>{item.album}</p>
               <p>{item.duration}</p>
-              <p onClick={() => removeSong(item._id)}>x</p>
-              <button className="bg-green-500 text-white px-3 py-1 rounded-md">
-                Play
-              </button>
+              <p
+                className="cursor-pointer"
+                onClick={() => removeSong(item._id)}
+              >
+                x
+              </p>
             </div>
           );
         })}

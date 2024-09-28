@@ -1,17 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import axios from "axios";
 import { url } from "../App";
 import { toast } from "react-toastify";
 
 const AddSong = () => {
-  const [image, setImage] = useState(false);
-  const [song, setSong] = useState(false);
+  const [image, setImage] = useState(null); // Should be null, not false
+  const [song, setSong] = useState(null); // Should be null, not false
   const [name, setName] = useState("");
   const [desc, setDescription] = useState("");
   const [album, setAlbum] = useState("none");
   const [loading, setLoading] = useState(false);
   const [albumdata, setAlbumData] = useState([]);
+
+  const loadAlbumData = async () => {
+    try {
+      const response = await axios.get(`${url}/api/album/list`);
+
+      if (response.data.success) {
+        setAlbumData(response.data.albums);
+      } else {
+        toast.error(response.data?.message || "Failed to fetch albums");
+      }
+    } catch (error) {
+      console.error("Error fetching albums:", error);
+      toast.error("Failed to fetch albums");
+    }
+  };
+
+  useEffect(() => {
+    loadAlbumData();
+  }, []); // Empty dependency array for initial load
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
@@ -21,20 +40,18 @@ const AddSong = () => {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("desc", desc);
-      formData.append("image", image);
-      formData.append("audio", song);
+      if (image) formData.append("image", image); // Optional field
+      if (song) formData.append("audio", song); // Optional field
       formData.append("album", album);
 
       const response = await axios.post(`${url}/api/song/add`, formData);
-
-      console.log("Response from server:", response.data); // Log the response
 
       if (response.data && response.data.success) {
         toast.success("Song added successfully");
         setName("");
         setDescription("");
-        setImage(false);
-        setSong(false);
+        setImage(null);
+        setSong(null);
         setAlbum("none");
       } else {
         toast.error(response.data?.message || "Failed to add song");
@@ -42,12 +59,15 @@ const AddSong = () => {
     } catch (error) {
       console.error("Error adding song:", error);
       toast.error("Failed to add song");
+    } finally {
+      setLoading(false); // Reset loading state
     }
-
-    setLoading(false);
   };
+
   return loading ? (
-    <div className="w-16 h-16 place-self-center border-4 border-gray-400 border-t-green-800 rounded-full animate-spin"></div>
+    <div className="grid place-items-center min-h-[80vh]">
+      <div className="w-16 h-16 place-self-center border-4 border-gray-400 border-t-green-800 rounded-full animate-spin"></div>
+    </div>
   ) : (
     <form
       onSubmit={onSubmitHandler}
@@ -121,6 +141,11 @@ const AddSong = () => {
           className="bg-transparent outline-green-600 border-2 border-gray-400 p-2.5 w-[150px]"
         >
           <option value="none">None</option>
+          {albumdata.map((item, index) => (
+            <option key={index} value={item.name}>
+              {item.name}
+            </option>
+          ))}
         </select>
       </div>
       <button
